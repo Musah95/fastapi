@@ -1,1 +1,0 @@
-SELECT posts.id, posts.title, posts.content, posts.published, posts.created_at, posts.owner_id, count(votes.post_id) AS votes FROM posts LEFT OUTER JOIN votes ON posts.id = votes.post_id GROUP BY posts.id

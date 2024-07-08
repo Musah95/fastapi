@@ -1,4 +1,4 @@
-from jose import JWTError, jwt
+from jose import JWTError, jwt, ExpiredSignatureError
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer
 from . import schemas, models
@@ -27,23 +27,43 @@ def create_access_token(data: dict):
 
     return encoded_jwt
 
-
-
-
 def verify_access_token(token: str, credential_exception):
-    decoded_jwt = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
-
     try:
+        decoded_jwt = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         id = decoded_jwt.get("user_id")
 
         if not id:
             raise credential_exception
         token_data = schemas.TokenData(id=id)
 
+    except ExpiredSignatureError:
+        print("Token has expired.")
+        raise credential_exception
+
     except JWTError:
         raise credential_exception
-    
+
     return token_data
+
+
+# def verify_access_token(token: str, credential_exception):
+#     decoded_jwt = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+
+#     try:
+#         id = decoded_jwt.get("user_id")
+
+#         if not id:
+#             raise credential_exception
+#         token_data = schemas.TokenData(id=id)
+    
+#     except ExpiredSignatureError:
+#         # Handle expired token specifically
+#         raise credential_exception
+    
+#     except JWTError:
+#         raise credential_exception
+    
+#     return token_data
     
     
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
